@@ -42,7 +42,7 @@ getNewToken();
 // refetch new token every 15 mins and save to cache
 setInterval(getNewToken, 1000*60*10);
 
-app.get('/get-icserver', function (req, res) {
+app.get('/api/get-icserver', function (req, res) {
   if (!cachedToken) {
     res.send(400, 'Problem getting ice servers data from Twilio')
   } else {

@@ -4,6 +4,7 @@ import { getRequest, postRequest } from "./../../utils/apiRequests";
 import {
   BASE_URL,
   GET_CALL_ID,
+  GET_ICE_SERVER,
   SAVE_CALL_ID,
 } from "./../../utils/apiEndpoints";
 import io from "socket.io-client";
@@ -33,7 +34,7 @@ const CallPage = () => {
   );
 
   const iceServers = useRef([]);
-  
+
   const [streamObj, setStreamObj] = useState();
   const [screenCastStream, setScreenCastStream] = useState();
   const [meetInfoPopup, setMeetInfoPopup] = useState(false);
@@ -55,14 +56,8 @@ const CallPage = () => {
     });
   }, []);
 
-  // useEffect(() => {
-  //   if(iceServers.current.length){
-  //     initWebRTC();
-  //   }
-  // }, [iceServers]);
-
   const getICServer = async () => {
-    const response = await getRequest(`${BASE_URL}/get-icserver`);
+    const response = await getRequest(`${BASE_URL}${GET_ICE_SERVER}`);
    iceServers.current = response;
   }
 
