@@ -48,7 +48,6 @@ const CallPage = () => {
       setMeetInfoPopup(true);
     }
     getICServer();
-    initWebRTC();
     socket.on("code", (data) => {
       if (data.url === url) {
         peer.signal(data.code);
@@ -59,6 +58,7 @@ const CallPage = () => {
   const getICServer = async () => {
     const response = await getRequest(`${BASE_URL}${GET_ICE_SERVER}`);
     iceServers.current = response;
+    initWebRTC();
   }
 
   const getRecieverCode = async () => {
