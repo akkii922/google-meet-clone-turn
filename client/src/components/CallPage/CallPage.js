@@ -58,7 +58,7 @@ const CallPage = () => {
 
   const getICServer = async () => {
     const response = await getRequest(`${BASE_URL}${GET_ICE_SERVER}`);
-   iceServers.current = response;
+    iceServers.current = response;
   }
 
   const getRecieverCode = async () => {
@@ -67,8 +67,6 @@ const CallPage = () => {
       peer.signal(response.code);
     }
   };
-
-  console.log("iceServers", iceServers);
 
   const initWebRTC = () => {
     navigator.mediaDevices
@@ -79,7 +77,7 @@ const CallPage = () => {
       .then((stream) => {
         setStreamObj(stream);
 
-        if(iceServers.current && iceServers.current.length){
+        if (iceServers.current && iceServers.current.length) {
           peer = new Peer({
             initiator: isAdmin,
             trickle: false,
@@ -88,73 +86,73 @@ const CallPage = () => {
               iceServers: iceServers.current
             }
           });
-        }
 
-        if (!isAdmin) {
-          getRecieverCode();
-        }
+          if (!isAdmin) {
+            getRecieverCode();
+          }
 
-        peer.on("signal", async (data) => {
-          if (isAdmin) {
-            console.log("data", data);
-            let payload = {
-              id,
-              signalData: data,
-            };
-            await postRequest(`${BASE_URL}${SAVE_CALL_ID}`, payload);
-          } else {
-            socket.emit("code", { code: data, url }, (cbData) => {
-              console.log("code sent");
+          peer.on("signal", async (data) => {
+            if (isAdmin) {
+              console.log("data", data);
+              let payload = {
+                id,
+                signalData: data,
+              };
+              await postRequest(`${BASE_URL}${SAVE_CALL_ID}`, payload);
+            } else {
+              socket.emit("code", { code: data, url }, (cbData) => {
+                console.log("code sent");
+              });
+
+            }
+          });
+
+          peer.on("connect", () => {
+            // wait for 'connect' event before using the data channel
+          });
+
+          peer.on("data", (data) => {
+            clearTimeout(alertTimeout);
+            messageListReducer({
+              type: "addMessage",
+              payload: {
+                user: "other",
+                msg: data.toString(),
+                time: Date.now(),
+              },
             });
 
-          }
-        });
-
-        peer.on("connect", () => {
-          // wait for 'connect' event before using the data channel
-        });
-
-        peer.on("data", (data) => {
-          clearTimeout(alertTimeout);
-          messageListReducer({
-            type: "addMessage",
-            payload: {
-              user: "other",
-              msg: data.toString(),
-              time: Date.now(),
-            },
-          });
-
-          setMessageAlert({
-            alert: true,
-            isPopup: true,
-            payload: {
-              user: "other",
-              msg: data.toString(),
-            },
-          });
-
-          alertTimeout = setTimeout(() => {
             setMessageAlert({
-              ...messageAlert,
-              isPopup: false,
-              payload: {},
+              alert: true,
+              isPopup: true,
+              payload: {
+                user: "other",
+                msg: data.toString(),
+              },
             });
-          }, 10000);
-        });
 
-        peer.on("stream", (stream) => {
-          // got remote video stream, now let's show it in a video tag
-          let video = document.querySelector("video");
+            alertTimeout = setTimeout(() => {
+              setMessageAlert({
+                ...messageAlert,
+                isPopup: false,
+                payload: {},
+              });
+            }, 10000);
+          });
 
-          if ("srcObject" in video) {
-            video.srcObject = stream;
-          } else {
-            video.src = window.URL.createObjectURL(stream); // for older browsers
-          }
+          peer.on("stream", (stream) => {
+            // got remote video stream, now let's show it in a video tag
+            let video = document.querySelector("video");
 
-          video.play();
-        });
+            if ("srcObject" in video) {
+              video.srcObject = stream;
+            } else {
+              video.src = window.URL.createObjectURL(stream); // for older browsers
+            }
+
+            video.play();
+          });
+        }
 
       })
       .catch(() => { });
